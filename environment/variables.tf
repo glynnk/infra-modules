@@ -4,7 +4,7 @@ variable "environment" {
   type = object({
     name    = string                   # a name for the environment            
     region  = string                   # the region to provision this environment i
-    domain  = string                   # the domain served by this environment (e.g. dev.mydomain.com)
+    domain  = string                   # the root domain (e.g. mydomain.com) so as to add an A-record to it for this domain (must exist) 
     cluster = object({
       default_node_pool_size = number  # number of nodes in the default pool
       app_node_pool_size_min = number  # min autoscaling nodes

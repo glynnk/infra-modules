@@ -69,7 +69,7 @@ resource "kubernetes_ingress" "grafana" {
 
   spec {
     rule {
-      host = format("grafana.%s", var.environment.domain)
+      host = format("grafana.%s.%s", var.environment.name, var.environment.domain)
       http {
         path {
           backend {
@@ -93,7 +93,7 @@ resource "kubernetes_ingress" "prometheus" {
 
   spec {
     rule {
-      host = format("prometheus.%s",var.environment.domain)
+      host = format("prometheus.%s.%s", var.environment.name, var.environment.domain)
       http {
         path {
           backend {
