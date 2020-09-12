@@ -58,13 +58,38 @@ resource "helm_release" "prometheus_operator" {
   namespace  = kubernetes_namespace.monitoring.metadata[0].name
 }
 
+resource "helm_release" "ingress_nginx" {
+  name       = "external-dns"
+  chart      = "stable/external-dns"
+
+  set {
+    name  = "rbac.create"
+    value = "true"
+  }
+
+  set {
+    name  = "provider"
+    value = "digitalocean"
+  }
+
+  set {
+    name  = "interval"
+    value = "1m"
+  }
+
+  set {
+    name  = "policy"
+    value = "sync"
+  }
+}
+
 resource "kubernetes_ingress" "grafana" {
   metadata {
     name       = "grafana"
     namespace  = kubernetes_namespace.monitoring.metadata[0].name
-    annotations = {
-      "kubernetes.io/ingress.class" = "nginx"
-    }
+#    annotations = {
+#      "kubernetes.io/ingress.class" = "nginx"
+#    }
   }
 
   spec {
@@ -86,9 +111,9 @@ resource "kubernetes_ingress" "prometheus" {
   metadata {
     name       = "prometheus"
     namespace  = kubernetes_namespace.monitoring.metadata[0].name
-    annotations = {
-      "kubernetes.io/ingress.class" = "nginx"
-    }
+#    annotations = {
+#      "kubernetes.io/ingress.class" = "nginx"
+#    }
   }
 
   spec {

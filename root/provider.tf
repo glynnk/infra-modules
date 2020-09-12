@@ -1,6 +1,4 @@
-# main.tf
-# Configure the DigitalOcean Provider
-# terraform init
+# provider.tf
 
 terraform {
   required_providers {

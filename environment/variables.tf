@@ -3,8 +3,8 @@ variable "environment" {
   description = "The Specification of an Environment"
   type = object({
     name    = string                   # a name for the environment            
-    region  = string                   # the region to provision this environment i
-    domain  = string                   # the root domain (e.g. mydomain.com) so as to add an A-record to it for this domain (must exist) 
+    region  = string                   # the region to provision this environment the resources in.
+    domain  = string                   # the root domain (e.g. mydomain.com). 
     cluster = object({
       default_node_pool_size = number  # number of nodes in the default pool
       app_node_pool_size_min = number  # min autoscaling nodes
