@@ -18,7 +18,7 @@ Create a git repo and add a `.gitignore` file with the following lines:
 
 #### main/main.tf
 This module creates the domain and container registry.
-You need to own the domain![Get a free one](https://www.freenom.com/en/index.html?lang=en) at minimum.
+You need to own the domain! [Get a free one](https://www.freenom.com/en/index.html?lang=en) at minimum.
 ```
 # main/main.tf
 
@@ -35,7 +35,8 @@ module "main" {
 #### dev/main.tf
 This module created a Virtual Private Cloud, provisioned into which will be a
 kubernetes cluster, into which will be installed:
-  1. An [nginx ingress](https://github.com/kubernetes/ingress-nginx) controller (which will create a Load Balancer)
+  1. An [nginx ingress](https://github.com/kubernetes/ingress-nginx) controller (which will create a Load Balancer for incoming traffic)
+  2. [ExternalDNS](https://github.com/kubernetes-sigs/external-dns), which will aitomatically manage your DNS records as you create, update and delete Ingresses and Services on the cluster.
   2. [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) for metrics
   3. [Grafana](https://grafana.com) for metrics presentation
 ```
@@ -63,6 +64,7 @@ module "dev" {
 ## Provisioning
 Export the following environment variables with their corresponding values:
   - DIGITALOCEAN\_ACCESS\_TOKEN ([your personal access token](https://cloud.digitalocean.com/account/api/tokens))
+  - TF\_VAR\_do\_access\_token=$DIGITALOCEAN\_ACCESS\_TOKEN (duplication required for a helm chart)
   - SPACES\_ACCESS\_KEY\_ID     ([of the S3 space created above](https://cloud.digitalocean.com/spaces))
   - SPACES\_SECRET\_ACCESS\_KEY ([of the S3 space created above](https://cloud.digitalocean.com/spaces))
 

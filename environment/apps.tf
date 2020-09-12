@@ -44,6 +44,7 @@ resource "helm_release" "ingress_nginx" {
   name       = "ingress-nginx"
   chart      = "ingress-nginx"
   namespace  = kubernetes_namespace.ingress_nginx.metadata[0].name
+  depends_on = [ digitalocean_kubernetes_node_pool.cluster_node_pool ]
 
   set {
     name  = "controller.publishService.enabled"
@@ -56,9 +57,10 @@ resource "helm_release" "prometheus_operator" {
   name       = "prometheus-operator"
   chart      = "prometheus-operator"
   namespace  = kubernetes_namespace.monitoring.metadata[0].name
+  depends_on = [ helm_release.ingress_nginx ]
 }
 
-resource "helm_release" "ingress_nginx" {
+resource "helm_release" "external_dns" {
   name       = "external-dns"
   chart      = "stable/external-dns"
 
@@ -81,6 +83,13 @@ resource "helm_release" "ingress_nginx" {
     name  = "policy"
     value = "sync"
   }
+
+  set {
+    name  = "digitalocean.apiToken"
+    value = var.do_access_token
+  }
+
+  depends_on = [ helm_release.ingress_nginx ]
 }
 
 resource "kubernetes_ingress" "grafana" {
@@ -105,6 +114,8 @@ resource "kubernetes_ingress" "grafana" {
       }
     }
   }
+
+  depends_on = [ helm_release.external_dns ]
 }
 
 resource "kubernetes_ingress" "prometheus" {
@@ -129,5 +140,7 @@ resource "kubernetes_ingress" "prometheus" {
       }
     }
   }
+
+  depends_on = [ helm_release.external_dns ]
 }
 
