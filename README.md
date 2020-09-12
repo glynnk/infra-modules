@@ -23,7 +23,7 @@ You need to own the domain! [Get a free one](https://www.freenom.com/en/index.ht
 # main/main.tf
 
 module "main" {
-  source = "github.com/glynnk/infra-modules?ref=1.0.4//root"
+  source = "github.com/glynnk/infra-modules//root?ref=1.0.6"
   root   = {
     name    = "main"                                 # a name to give this instance of the module
     tfstate = "myspace.ams3.digitaloceanspaces.com"  # the url for the S3 storage space in which state will be maintained
@@ -43,7 +43,7 @@ kubernetes cluster, into which will be installed:
 # dev/main.tf
 
 module "dev" {
-  source = "github.com/glynnk/infra-modules?ref=v1.0.0//environment"
+  source = "github.com/glynnk/infra-modules//environment?ref=1.0.6"
   environment = {
     name    = "dev"                                  # a name to give this k8s environment
     region  = "ams3"                                 # the region in which to create the VPC
