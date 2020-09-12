@@ -1,3 +1,4 @@
+variable "do_access_token" {}
 
 variable "environment" {
   description = "The Specification of an Environment"
