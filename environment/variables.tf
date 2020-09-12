@@ -5,7 +5,6 @@ variable "environment" {
     name    = string                   # a name for the environment            
     region  = string                   # the region to provision this environment the resources in.
     domain  = string                   # the root domain (e.g. mydomain.com). 
-    tfstate = string                   # the location of the S3 storage space in which state will be maintained
     cluster = object({
       default_node_pool_size = number  # number of nodes in the default pool
       app_node_pool_size_min = number  # min autoscaling nodes
@@ -18,7 +17,6 @@ variable "environment" {
     name    = null
     region  = null
     domain  = null
-    tfstate = null
     cluster = {
       default_node_pool_size = 2      
       app_node_pool_size_min = 1      
