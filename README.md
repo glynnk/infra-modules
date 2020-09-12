@@ -16,22 +16,56 @@ Create a git repo and add a `.gitignore` file with the following lines:
 *.tfstate
 ```
 
-#### main/main.tf
+#### main/remote-state.tf
+Set up remote state for the main infrastructure
+```
+# remote-state.tf
+terraform {
+  backend "s3" {
+    endpoint = "ams3.digitaloceanspaces.com"   # this is a region-specific digitalocean endpoint
+    region   = "eu-west-1"                     # not used since it's a DigitalOcean spaces bucket
+    bucket   = "myspace"                       # the name of the S3 space/bucket
+    key      = "main.tfstate"                  # the name of the state file to save state in
+
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+  }
+}
+```
+
+#### main/main.tfvars
 This module creates the domain and container registry.
 You need to own the domain! [Get a free one](https://www.freenom.com/en/index.html?lang=en) at minimum.
 ```
-# main/main.tf
+# main/main.tfvars
 
 module "main" {
-  source = "github.com/glynnk/infra-modules//root?ref=1.0.6"
+  source = "github.com/glynnk/infra-modules//root?ref=1.1.0"
   root   = {
-    name    = "main"                                 # a name to give this instance of the module
-    tfstate = "myspace.ams3.digitaloceanspaces.com"  # the url for the S3 storage space in which state will be maintained
-    domain  = "mydomain.com"                         # a domain that you own for which A-records will be set up for each k8s environment
+    name    = "main"                # a name to give this instance of the module
+    domain  = "mydomain.com"        # a domain that you own for which A-records will be set up for each k8s environment
+    token   = var.do_access_token   # your digitalocean personal access token
   }
 }
 
 ```
+#### dev/remote-state.tf
+Set up remote state for the dev infrastructure.
+```
+# remote-state.tf
+terraform {
+  backend "s3" {
+    endpoint = "ams3.digitaloceanspaces.com"   # this is a region-specific digitalocean endpoint
+    region   = "eu-west-1"                     # not used since it's a DigitalOcean spaces bucket
+    bucket   = "myspace"                       # the name of the S3 space/bucket
+    key      = "dev.tfstate"                   # the name of the state file to save state in
+
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+  }
+}
+```
+
 #### dev/main.tf
 This module created a Virtual Private Cloud, provisioned into which will be a
 kubernetes cluster, into which will be installed:
@@ -40,21 +74,21 @@ kubernetes cluster, into which will be installed:
   2. [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) for metrics
   3. [Grafana](https://grafana.com) for metrics presentation
 ```
-# dev/main.tf
+# dev/main.tfvars
 
 module "dev" {
   source = "github.com/glynnk/infra-modules//environment?ref=1.0.6"
   environment = {
-    name    = "dev"                                  # a name to give this k8s environment
-    region  = "ams3"                                 # the region in which to create the VPC
-    domain  = "mydomain.com"                         # the domain for which to add an A record for this environment.
-    tfstate = "myspace.ams3.digitaloceanspaces.com"  # the url for the S3 storage space in which state will be maintained
+    name    = "dev"                   # a name to give this k8s environment
+    region  = "ams3"                  # the region in which to create the VPC
+    domain  = "mydomain.com"          # the domain for which to add an A record for this environment.
+    token   = var.do_access_token     # your digitalocean personal access token
     cluster = {
-      default_node_pool_size = 2                     # the number of nodes in the default pool
-      app_node_pool_size_min = 1                     # minimum number of autoscaling nodes in the secondary pool
-      app_node_pool_size_max = 5                     # maximum number of autoscaling nodes in the secondary pool
-      auto_upgrade           = true                  # auto-upgrade kubernetes when a new version is available?
-      kubernetes_version     = "1."                  # version of kubernetes to provision (the example here gets the latest)
+      default_node_pool_size = 2      # the number of nodes in the default pool
+      app_node_pool_size_min = 1      # minimum number of autoscaling nodes in the secondary pool
+      app_node_pool_size_max = 5      # maximum number of autoscaling nodes in the secondary pool
+      auto_upgrade           = true   # auto-upgrade kubernetes when a new version is available?
+      kubernetes_version     = "1."   # version of kubernetes to provision (the example here gets the latest)
     }
   }
 }
@@ -63,8 +97,7 @@ module "dev" {
 
 ## Provisioning
 Export the following environment variables with their corresponding values:
-  - DIGITALOCEAN\_ACCESS\_TOKEN ([your personal access token](https://cloud.digitalocean.com/account/api/tokens))
-  - TF\_VAR\_do\_access\_token=$DIGITALOCEAN\_ACCESS\_TOKEN (duplication required for a helm chart)
+  - TF\_VAR\_do\_access\_token  ([your personal access token](https://cloud.digitalocean.com/account/api/tokens))
   - SPACES\_ACCESS\_KEY\_ID     ([of the S3 space created above](https://cloud.digitalocean.com/spaces))
   - SPACES\_SECRET\_ACCESS\_KEY ([of the S3 space created above](https://cloud.digitalocean.com/spaces))
 

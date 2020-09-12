@@ -1,11 +1,11 @@
-variable "do_access_token" {}
 
 variable "environment" {
   description = "The Specification of an Environment"
   type = object({
     name    = string                   # a name for the environment            
     region  = string                   # the region to provision this environment the resources in.
-    domain  = string                   # the root domain (e.g. mydomain.com). 
+    domain  = string                   # the root domain (e.g. mydomain.com).
+    token   = string                   # your digitalocean personal access token
     cluster = object({
       default_node_pool_size = number  # number of nodes in the default pool
       app_node_pool_size_min = number  # min autoscaling nodes
@@ -18,6 +18,7 @@ variable "environment" {
     name    = null
     region  = null
     domain  = null
+    token   = null
     cluster = {
       default_node_pool_size = 2      
       app_node_pool_size_min = 1      

@@ -86,7 +86,7 @@ resource "helm_release" "external_dns" {
 
   set {
     name  = "digitalocean.apiToken"
-    value = var.do_access_token
+    value = var.environment.token
   }
 
   depends_on = [ helm_release.ingress_nginx ]
