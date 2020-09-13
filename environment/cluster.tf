@@ -137,7 +137,7 @@ resource "helm_release" "prometheus_operator" {
 resource "helm_release" "public_ingresses" {
   depends_on = [ helm_release.cert_manager ]
   name             = "public-ingresses"
-  chart            = "./charts/public-ingresses"
+  chart            = "./.terraform/modules/dev/environment/charts/public-ingresses"
 
   set {
     name  = "email"
