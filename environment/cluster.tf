@@ -134,7 +134,7 @@ resource "helm_release" "prometheus_operator" {
   create_namespace = true
 }
 
-resource "helm_release" "prometheus_operator" {
+resource "helm_release" "public_ingresses" {
   name             = "public-ingresses"
   chart            = "./charts/public-ingresses"
 
