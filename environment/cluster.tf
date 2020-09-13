@@ -208,7 +208,7 @@ resource "kubernetes_ingress" "grafana" {
   spec {
     tls {
       hosts = [ format("grafana.%s.%s", var.environment.name, var.environment.domain) ]
-      secretName: grafana-tls
+      secret_name: "grafana-tls"
     }
     rule {
       host = format("grafana.%s.%s", var.environment.name, var.environment.domain)
@@ -244,7 +244,7 @@ resource "kubernetes_ingress" "prometheus" {
   spec {
     tls {
       hosts = [ format("prometheus.%s.%s", var.environment.name, var.environment.domain) ]
-      secretName: prometheus-tls
+      secret_name: "prometheus-tls"
     }
     rule {
       host = format("prometheus.%s.%s", var.environment.name, var.environment.domain)
