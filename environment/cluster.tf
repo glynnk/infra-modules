@@ -160,19 +160,19 @@ resource "kubernetes_manifest" "clusterissuer_letsencrypt" {
     }
     "spec" = {
       "acme" = {
-        "email"  = var.environment.email
-        "server" = https://acme-v02.api.letsencrypt.org/directory
+        "email" = "glynnk@gmail.com"
         "privateKeySecretRef" = {
-          "name" = letsencrypt-private-key
+          "name" = "letsencrypt-private-key"
         }
+        "server" = "https://acme-v02.api.letsencrypt.org/directory"
         "solvers" = [
           {
             "http01" = {
               "ingress" = {
-                "class" = nginx
+                "class" = "nginx"
               }
             }
-          }
+          },
         ]
       }
     }
