@@ -56,21 +56,6 @@ resource "digitalocean_kubernetes_node_pool" "cluster_node_pool" {
 
 # Install ingress nginx load balancer and external-dns
 
-provider "kubernetes" {
-  version = "~> 1.12.0"
-  host  = digitalocean_kubernetes_cluster.cluster.endpoint
-  token = digitalocean_kubernetes_cluster.cluster.kube_config[0].token
-  cluster_ca_certificate = base64decode(
-    digitalocean_kubernetes_cluster.cluster.kube_config[0].cluster_ca_certificate
-  )
-}
-
-resource "kubernetes_namespace" "ingress_nginx" {
-  metadata {
-    name = "ingress-nginx"
-  }
-}
-
 provider "helm" {
   version = "~> 1.2.4"
   kubernetes {
@@ -83,10 +68,11 @@ provider "helm" {
 }
 
 resource "helm_release" "ingress_nginx" {
-  repository = "https://kubernetes.github.io/ingress-nginx"
-  name       = "ingress-nginx"
-  chart      = "ingress-nginx"
-  namespace  = kubernetes_namespace.ingress_nginx.metadata[0].name
+  repository       = "https://kubernetes.github.io/ingress-nginx"
+  name             = "ingress-nginx"
+  chart            = "ingress-nginx"
+  namespace        = kubernetes_namespace.ingress_nginx.metadata[0].name
+  create_namespace = true
 
   set {
     name  = "controller.publishService.enabled"
