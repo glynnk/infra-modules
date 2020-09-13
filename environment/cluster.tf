@@ -129,7 +129,7 @@ provider "kubernetes" {
 }
 
 resource "kubernetes_ingress" "grafana" {
-  depends_on = [ helm.release.prometheus_operator ]
+  depends_on = [ helm_release.prometheus_operator ]
 
   metadata {
     name       = "grafana"
@@ -155,7 +155,7 @@ resource "kubernetes_ingress" "grafana" {
 }
 
 resource "kubernetes_ingress" "prometheus" {
-  depends_on = [ helm.release.prometheus_operator ]
+  depends_on = [ helm_release.prometheus_operator ]
 
   metadata {
     name       = "prometheus"
