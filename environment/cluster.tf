@@ -134,128 +134,23 @@ resource "helm_release" "prometheus_operator" {
   create_namespace = true
 }
 
+resource "helm_release" "prometheus_operator" {
+  name             = "public-ingresses"
+  chart            = "./charts/public-ingresses"
 
-# TODO:
-# one piece of the puzzle is missing
-# how to create the issuer manifest since it's a CRD? use kubernetes-alpha?
-# this need to be done before creating the following ingresses
+  set {
+    name  = "email"
+    value = var.environment.email
+  }
 
-provider "kubernetes-alpha" {
-  load_config_file       = false
-  host                   = digitalocean_kubernetes_cluster.cluster.endpoint
-  token                  = digitalocean_kubernetes_cluster.cluster.kube_config[0].token
-  cluster_ca_certificate = base64decode(
-    digitalocean_kubernetes_cluster.cluster.kube_config[0].cluster_ca_certificate
-  )
-}
+  set {
+    name  = "hosts.grafana"
+    value = format("grafana.%s.%s", var.environment.name, var.environment.domain) 
+  }
 
-resource "kubernetes_manifest" "clusterissuer_letsencrypt" {
-  provider = kubernetes-alpha
-  depends_on = [ helm_release.cert_manager ]
-  manifest = {
-    "apiVersion" = "cert-manager.io/v1alpha2"
-    "kind" = "ClusterIssuer"
-    "metadata" = {
-      "name" = "letsencrypt"
-    }
-    "spec" = {
-      "acme" = {
-        "email" = "glynnk@gmail.com"
-        "privateKeySecretRef" = {
-          "name" = "letsencrypt-private-key"
-        }
-        "server" = "https://acme-v02.api.letsencrypt.org/directory"
-        "solvers" = [
-          {
-            "http01" = {
-              "ingress" = {
-                "class" = "nginx"
-              }
-            }
-          },
-        ]
-      }
-    }
+  set {
+    name  = "hosts.prometheus"
+    value = format("prometheus.%s.%s", var.environment.name, var.environment.domain) 
   }
 }
 
-provider "kubernetes" {
-  load_config_file       = false
-  host                   = digitalocean_kubernetes_cluster.cluster.endpoint
-  token                  = digitalocean_kubernetes_cluster.cluster.kube_config[0].token
-  cluster_ca_certificate = base64decode(
-    digitalocean_kubernetes_cluster.cluster.kube_config[0].cluster_ca_certificate
-  )
-}
-
-resource "kubernetes_ingress" "grafana" {
-  depends_on = [
-    helm_release.prometheus_operator,
-    helm_release.ingress_nginx,
-    helm_release.external_dns,
-    kubernetes_manifest.clusterissuer_letsencrypt,
-  ]
-
-  metadata {
-    name       = "grafana"
-    namespace  = "monitoring"
-    annotations = {
-      "kubernetes.io/ingress.class" = "nginx"
-      "cert-manager.io/cluster-issuer" = "letsencrypt"
-    }
-  }
-
-  spec {
-    tls {
-      hosts = [ format("grafana.%s.%s", var.environment.name, var.environment.domain) ]
-      secret_name = "grafana-tls"
-    }
-    rule {
-      host = format("grafana.%s.%s", var.environment.name, var.environment.domain)
-      http {
-        path {
-          backend {
-            service_name = "prometheus-operator-grafana"
-            service_port = 80
-          }
-        }
-      }
-    }
-  }
-}
-
-resource "kubernetes_ingress" "prometheus" {
-  depends_on = [
-    helm_release.prometheus_operator,
-    helm_release.ingress_nginx,
-    helm_release.external_dns,
-    kubernetes_manifest.clusterissuer_letsencrypt,
-  ]
-
-  metadata {
-    name       = "prometheus"
-    namespace  = "monitoring"
-    annotations = {
-      "kubernetes.io/ingress.class" = "nginx"
-      "cert-manager.io/cluster-issuer" = "letsencrypt"
-    }
-  }
-
-  spec {
-    tls {
-      hosts = [ format("prometheus.%s.%s", var.environment.name, var.environment.domain) ]
-      secret_name = "prometheus-tls"
-    }
-    rule {
-      host = format("prometheus.%s.%s", var.environment.name, var.environment.domain)
-      http {
-        path {
-          backend {
-            service_name = "prometheus-operator-prometheus"
-            service_port = 9090
-          }
-        }
-      }
-    }
-  }
-}
