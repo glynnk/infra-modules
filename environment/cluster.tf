@@ -115,7 +115,7 @@ resource "helm_release" "prometheus_operator" {
   repository       = "https://kubernetes-charts.storage.googleapis.com"
   name             = "prometheus-operator"
   chart            = "prometheus-operator"
-  namespace        = "minitoring"
+  namespace        = "monitoring"
   create_namespace = true
 }
 
@@ -129,7 +129,11 @@ provider "kubernetes" {
 }
 
 resource "kubernetes_ingress" "grafana" {
-  depends_on = [ helm_release.prometheus_operator ]
+  depends_on = [
+    helm_release.prometheus_operator,
+    helm_release.ingress_nginx,
+    helm_release.external_dns,
+  ]
 
   metadata {
     name       = "grafana"
@@ -155,7 +159,11 @@ resource "kubernetes_ingress" "grafana" {
 }
 
 resource "kubernetes_ingress" "prometheus" {
-  depends_on = [ helm_release.prometheus_operator ]
+  depends_on = [
+    helm_release.prometheus_operator,
+    helm_release.ingress_nginx,
+    helm_release.external_dns,
+  ]
 
   metadata {
     name       = "prometheus"
