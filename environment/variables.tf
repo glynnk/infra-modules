@@ -6,6 +6,7 @@ variable "environment" {
     region  = string                   # the region to provision this environment the resources in.
     domain  = string                   # the root domain (e.g. mydomain.com).
     token   = string                   # your digitalocean personal access token
+    email   = string                   # support email address (also used for certificates)
     cluster = object({
       default_node_pool_size = number  # number of nodes in the default pool
       app_node_pool_size_min = number  # min autoscaling nodes
@@ -19,12 +20,13 @@ variable "environment" {
     region  = null
     domain  = null
     token   = null
+    email   = null
     cluster = {
       default_node_pool_size = 2      
       app_node_pool_size_min = 1      
       app_node_pool_size_max = 5      
       auto_upgrade           = true   
-      kubernetes_version     = "1."   # we're getting the latest
+      kubernetes_version     = "1.18.8-do.0"
     }
   }
 }
