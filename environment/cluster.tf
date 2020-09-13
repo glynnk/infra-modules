@@ -111,3 +111,71 @@ resource "helm_release" "external_dns" {
   }
 }
 
+resource "helm_release" "prometheus_operator" {
+  repository       = "https://kubernetes-charts.storage.googleapis.com"
+  name             = "prometheus-operator"
+  chart            = "prometheus-operator"
+  namespace        = "minitoring"
+  create_namespace = true
+}
+
+provider "kubernetes" {
+  load_config_file       = false
+  host                   = digitalocean_kubernetes_cluster.cluster.endpoint
+  token                  = digitalocean_kubernetes_cluster.cluster.kube_config[0].token
+  cluster_ca_certificate = base64decode(
+    digitalocean_kubernetes_cluster.cluster.kube_config[0].cluster_ca_certificate
+  )
+}
+
+resource "kubernetes_ingress" "grafana" {
+  depends_on = [ helm.release.prometheus_operator ]
+
+  metadata {
+    name       = "grafana"
+    namespace  = "monitoring"
+    annotations = {
+      "kubernetes.io/ingress.class" = "nginx"
+    }
+  }
+
+  spec {
+    rule {
+      host = format("grafana.%s.%s", var.environment.name, var.environment.domain)
+      http {
+        path {
+          backend {
+            service_name = "prometheus-operator-grafana"
+            service_port = 80
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_ingress" "prometheus" {
+  depends_on = [ helm.release.prometheus_operator ]
+
+  metadata {
+    name       = "prometheus"
+    namespace  = "monitoring"
+    annotations = {
+      "kubernetes.io/ingress.class" = "nginx"
+    }
+  }
+
+  spec {
+    rule {
+      host = format("prometheus.%s.%s", var.environment.name, var.environment.domain)
+      http {
+        path {
+          backend {
+            service_name = "prometheus-operator-prometheus"
+            service_port = 9090
+          }
+        }
+      }
+    }
+  }
+}
