@@ -9,10 +9,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - {{ .hosts.grafana }}
+    - {{ .Values.hosts.grafana }}
     secretName: grafana-tls
   rules:
-  - host: {{ .hosts.grafana }}
+  - host: {{ .Values.hosts.grafana }}
     http:
       paths:
       - backend:

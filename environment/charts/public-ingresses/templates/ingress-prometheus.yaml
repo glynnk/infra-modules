@@ -9,10 +9,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - {{ .hosts.prometheus }}
+    - {{ .Values.hosts.prometheus }}
     secretName: grafana-tls
   rules:
-  - host: {{ .hosts.prometheus }}
+  - host: {{ .Values.hosts.prometheus }}
     http:
       paths:
       - backend:
