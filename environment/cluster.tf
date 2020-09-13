@@ -54,3 +54,73 @@ resource "digitalocean_kubernetes_node_pool" "cluster_node_pool" {
   }
 }
 
+# Install ingress nginx load balancer and external-dns
+
+provider "kubernetes" {
+  version = "~> 1.12.0"
+  host  = digitalocean_kubernetes_cluster.cluster.endpoint
+  token = digitalocean_kubernetes_cluster.cluster.kube_config[0].token
+  cluster_ca_certificate = base64decode(
+    digitalocean_kubernetes_cluster.cluster.kube_config[0].cluster_ca_certificate
+  )
+}
+
+resource "kubernetes_namespace" "ingress_nginx" {
+  metadata {
+    name = "ingress-nginx"
+  }
+}
+
+provider "helm" {
+  version = "~> 1.2.4"
+  kubernetes {
+    host  = digitalocean_kubernetes_cluster.cluster.endpoint
+    token = digitalocean_kubernetes_cluster.cluster.kube_config[0].token
+    cluster_ca_certificate = base64decode(
+      digitalocean_kubernetes_cluster.cluster.kube_config[0].cluster_ca_certificate
+    )
+  }
+}
+
+resource "helm_release" "ingress_nginx" {
+  repository = "https://kubernetes.github.io/ingress-nginx"
+  name       = "ingress-nginx"
+  chart      = "ingress-nginx"
+  namespace  = kubernetes_namespace.ingress_nginx.metadata[0].name
+
+  set {
+    name  = "controller.publishService.enabled"
+    value = "true"
+  }
+}
+
+resource "helm_release" "external_dns" {
+  name       = "external-dns"
+  chart      = "stable/external-dns"
+
+  set {
+    name  = "rbac.create"
+    value = "true"
+  }
+
+  set {
+    name  = "provider"
+    value = "digitalocean"
+  }
+
+  set {
+    name  = "interval"
+    value = "1m"
+  }
+
+  set {
+    name  = "policy"
+    value = "sync"
+  }
+
+  set {
+    name  = "digitalocean.apiToken"
+    value = var.environment.token
+  }
+}
+
