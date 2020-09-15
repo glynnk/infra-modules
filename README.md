@@ -110,6 +110,8 @@ and add this one to put it behind a secured connection (note the the certs are s
 ```
 # dev/main.tf
 
+variable "do_access_token" {}
+
 module "dev" {
   source = "github.com/glynnk/infra-modules//environment?ref=1.1.0"
   environment = {
