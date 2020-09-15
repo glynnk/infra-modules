@@ -1,7 +1,7 @@
 # infra-modules
 Need a quick development k8s cluster that's not going to break the bank?
 
-This is Terraform specification for a Kubernetes based Infrastructure Specification.
+This is Terraform specification for provisioning Kubernetes based Infrastructure.
 
 The target hosting service is DigitalOcean.
 
@@ -21,23 +21,23 @@ Create a git repo and add a `.gitignore` file with the following lines:
 There are 2 modules that cover infrastructures with different uses. The first is call **root.**
 It is used to create some basic things like a container registry for your images and to
 set up a domain that will be used to create records for any subsequent **environments** you
-wish to create. We also need to ensure that terraform is storing and retrivinf state from
+wish to create. We also need to ensure that terraform is storing and retrieving state from
 a remote location, in this case, an S3 space that you've already created on digitalocean.
 
-The second module is the **environment**. It provisions a VPV with a kubernetes cluster and
+The second module is the **environment**. It provisions a VPC with a kubernetes cluster and
 some basic cluster installations that make everything work with routing, DNS records, load
-balancing etc. It also installs a metrics suite for monitoring things deployed on kubernetes
+balancing. tls, etc. It also installs a metrics suite for monitoring things deployed on kubernetes
 and a frontend to create visualisations/dashboards with the data. After provisioning, you can
 find the UIs for these at:
   - `http://prometheus.<environment.name>.<environment.domain>`
   - `ttp://grafana.<environment.name>.<environment.domain>`
 
 The reason why **environment** is a separate module is so that you can create and destroy
-environments according as you need them, while holding onto some basic infrastructure like
+environments as you need them, while holding onto some basic infrastructure like
 the container registry and your domain between these create and destroy processes - saving
 you lots of money while not loosing the ability to recreate everything from CI.
 
-Each of the following subsection details a file to create in your repo.
+Each of the following subsections details a file to create in your repo.
 
 TL;DR -> [see here for an example repo setup](https://github.com/glynnk/infra)
 
@@ -94,10 +94,19 @@ terraform {
 #### dev/main.tf
 This module created a Virtual Private Cloud, provisioned into which will be a
 kubernetes cluster, into which will be installed:
-  1. An [nginx ingress](https://github.com/kubernetes/ingress-nginx) controller (which will create a Load Balancer for incoming traffic)
+  1. An [nginx ingress](https://github.com/kubernetes/ingress-nginx) controller (which will create a Load Balancer for incoming traffic).
   2. [ExternalDNS](https://github.com/kubernetes-sigs/external-dns), which will aitomatically manage your DNS records as you create, update and delete Ingresses and Services on the cluster.
-  2. [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) for metrics
-  3. [Grafana](https://grafana.com) for metrics presentation
+  3. [Jetstask Cert Manager](https://github.com/jetstack/cert-manager), for TLS connections.
+  4. [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) for metrics.
+  5. [Grafana](https://grafana.com) for metrics presentation.
+
+When creating any subsequent ingresses in order to expose your app to the world wide web, add this annotation
+in order to get an A record created:
+  - `    kubernetes.io/ingress.class: nginx`
+
+and add this one to put it behind a secured connection (note the the certs are self-signed - this is for development purposes after all):
+  - `cert-manager.io/cluster-issuer: letsencrypt`
+
 ```
 # dev/main.tf
 
